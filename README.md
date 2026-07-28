@@ -4,11 +4,6 @@ Local music player and indexed album browser for M5Stack CardputerZero.
 
 <img width="320" height="170" alt="cover flow" src="https://github.com/user-attachments/assets/d5d06902-9dd6-427e-acd2-5c6a81866360" />
 
-<img width="320" height="170" alt="album list" src="https://github.com/user-attachments/assets/bcfdc451-00b6-453c-a0bb-3dd57995ea92" />
-
-<img width="320" height="170" alt="playback" src="https://github.com/user-attachments/assets/d9ea70b9-651f-448c-b663-629cf266597a" />
-
-
 ## Features
 
 - Scan local libraries for MP3, FLAC, M4A/MP4, WAV, OGG, and Opus files in the background
