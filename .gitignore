@@ -1,0 +1,9 @@
+build/
+build-*/
+dist/
+dependencies/
+.venv/
+__pycache__/
+.DS_Store
+.clangd
+test_music/library/

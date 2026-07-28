@@ -1,0 +1,42 @@
+Piano Classics bundled example tracks
+======================================
+
+01 - Maple Leaf Rag.mp3
+Title: Maple Leaf Rag
+Composer: Scott Joplin
+MIDI source: https://commons.wikimedia.org/wiki/File:Joplin_-_Maple_Leaf_Rag.mid
+MIDI origin: Mutopia Project
+MIDI license: Public Domain
+MIDI SHA-256: 89d2a6bfa077ddb161d960dd371d913753a5317eeec8f99c9a3a591514df74c0
+MP3 SHA-256: bb0ceb9ca6a1135ac14eb5f4c5933dcdc2e2d5ed7bce331fd235476b4a94d9ec
+
+02 - Clair de Lune.mp3
+Title: Clair de Lune, L. 32
+Composer: Claude Debussy
+MIDI source: https://commons.wikimedia.org/wiki/File:Debussy_-_Clair_de_Lune.mid
+MIDI author: Bernd Krueger
+MIDI license: CC BY-SA 3.0 DE
+License URL: https://creativecommons.org/licenses/by-sa/3.0/de/deed.en
+Output license: CC BY-SA 3.0 DE
+MIDI SHA-256: 10f58bc6fc50fe2eb5ac2e850ab0606338039ab90442e46ee62c2885ef626a4e
+MP3 SHA-256: 5553bf5df95fdc4906e98b40e17c8128bb2008e5e7003812981df48cada5b948
+
+03 - Liebestraume No. 3.mp3
+Title: Liebestraume No. 3, S. 541/3
+Composer: Franz Liszt
+MIDI source: https://commons.wikimedia.org/wiki/File:Liszt_-_Love_Dreams_No._3.mid
+MIDI author: Bernd Krueger
+MIDI license: CC BY-SA 3.0 DE
+License URL: https://creativecommons.org/licenses/by-sa/3.0/de/deed.en
+Output license: CC BY-SA 3.0 DE
+MIDI SHA-256: 1590cfbbe2337cce3deb06f6a5a38e576fa8e031dab3fcab3319a0a382b2ae27
+MP3 SHA-256: 6c7d75ddd8cd99f3320a9cd18f193c5006deabc7d157d34166f55417e11e48da
+
+Synthesis
+---------
+Renderer: FluidSynth 2.3.4 (LGPL)
+SoundFont: MuseScore General Lite 0.2.1
+SoundFont source: https://musescore.org/en/node/269869
+SoundFont license: MIT; included components are Public Domain or CC0
+Piano samples: Splendid Grand piano from AKAI S5000, verified Public Domain
+Encoding: MP3, 44.1 kHz stereo, 96 kbps, normalized to approximately -18 LUFS / -1.5 dBTP

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Music
+Exec=/usr/share/APPLaunch/bin/M5CardputerZero-Music
+Terminal=false
+Icon=share/images/music.png
+Type=Application

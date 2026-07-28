@@ -1,0 +1,133 @@
+{
+    "targets": [
+        {
+            "name": "font_noto_sans_sc_semibold_12",
+            "source": "NotoSansSC-SemiBold.ttf",
+            "size": 12,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x0370-0x052F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "gb2312",
+                    "rows": [[16, 55]]
+                }
+            ]
+        },
+        {
+            "name": "font_noto_sans_sc_semibold_14",
+            "source": "NotoSansSC-SemiBold.ttf",
+            "size": 14,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x0370-0x052F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "gb2312",
+                    "rows": [[16, 55]]
+                }
+            ]
+        },
+        {
+            "name": "font_noto_sans_sc_semibold_18",
+            "source": "NotoSansSC-SemiBold.ttf",
+            "size": 18,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x0370-0x052F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "gb2312",
+                    "rows": [[16, 55]]
+                }
+            ]
+        },
+        {
+            "name": "font_noto_sans_jp_semibold_12",
+            "source": "NotoSansJP-SemiBold.ttf",
+            "size": 12,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0x3040-0x30FF",
+                "0x31F0-0x31FF",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "euc_jp",
+                    "rows": [[16, 47]]
+                }
+            ]
+        },
+        {
+            "name": "font_noto_sans_jp_semibold_14",
+            "source": "NotoSansJP-SemiBold.ttf",
+            "size": 14,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0x3040-0x30FF",
+                "0x31F0-0x31FF",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "euc_jp",
+                    "rows": [[16, 47]]
+                }
+            ]
+        },
+        {
+            "name": "font_noto_sans_jp_semibold_18",
+            "source": "NotoSansJP-SemiBold.ttf",
+            "size": 18,
+            "bpp": 4,
+            "ranges": [
+                "0x20-0x024F",
+                "0x2000-0x206F",
+                "0x2190-0x21FF",
+                "0x2669-0x266F",
+                "0x3000-0x303F",
+                "0x3040-0x30FF",
+                "0x31F0-0x31FF",
+                "0xFF00-0xFFEF"
+            ],
+            "encoded_ranges": [
+                {
+                    "encoding": "euc_jp",
+                    "rows": [[16, 47]]
+                }
+            ]
+        }
+    ]
+}

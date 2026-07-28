@@ -1,0 +1,115 @@
+name: cp0 package
+
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and build cp0 package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure ARM64 package source
+        run: |
+          sudo dpkg --add-architecture arm64
+
+          if ! grep -q '^Architectures:' /etc/apt/sources.list.d/ubuntu.sources; then
+            sudo sed -i '/^Components:/a Architectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
+          fi
+
+          sudo tee /etc/apt/sources.list.d/ubuntu-arm64.sources >/dev/null <<'EOF'
+          Types: deb
+          URIs: http://ports.ubuntu.com/ubuntu-ports
+          Suites: noble noble-updates noble-backports noble-security
+          Components: main universe
+          Architectures: arm64
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          EOF
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            dpkg-dev \
+            g++-aarch64-linux-gnu \
+            gcc-aarch64-linux-gnu \
+            git \
+            python3-venv \
+            zlib1g-dev \
+            zlib1g:arm64
+
+      - name: Bootstrap third-party dependencies
+        run: ./bootstrap.sh
+
+      - name: Run unit tests
+        run: |
+          cmake -S . -B build/tests \
+            -DMUSIC_USE_SDL=OFF \
+            -DBUILD_TESTING=ON
+          cmake --build build/tests --parallel 2 --target \
+            music_lyrics_tests \
+            music_cover_rasterizer_tests \
+            music_cover_image_loader_tests \
+            music_library_model_tests
+          ctest --test-dir build/tests --output-on-failure
+
+      - name: Build cp0 package
+        run: ./packaging/deb/package_deb.sh
+
+      - name: Collect release assets
+        run: |
+          mkdir -p release-assets
+          cp dist/M5CardputerZero-Music release-assets/
+          cp dist/*.deb release-assets/
+          ls -lh release-assets
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cp0-package
+          path: release-assets/*
+          if-no-files-found: error
+
+  upload-release-assets:
+    name: Upload Debian package to GitHub Release
+    if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download workflow artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cp0-package
+          path: release-assets
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --title "$RELEASE_TAG" \
+              --notes "Automated release for $RELEASE_TAG"
+          fi
+
+          gh release upload "$RELEASE_TAG" release-assets/*.deb --clobber
