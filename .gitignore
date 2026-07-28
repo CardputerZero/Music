@@ -7,3 +7,4 @@ __pycache__/
 .DS_Store
 .clangd
 test_music/library/
+test_music/cover_flow_library/
