@@ -549,8 +549,11 @@ void CoverFlowView::updateAlbumText(const Album* album)
 void CoverFlowView::updateScanState()
 {
     const ScanState state = _view_model.scanState();
+    const bool failed = state.phase == ScanPhase::Error;
+    const bool completed_with_failures = state.phase == ScanPhase::Complete && state.files_failed > 0;
     const bool visible =
-        state.phase != ScanPhase::Complete && state.phase != ScanPhase::Idle && state.phase != ScanPhase::Stopped;
+        failed || completed_with_failures ||
+        (state.phase != ScanPhase::Complete && state.phase != ScanPhase::Idle && state.phase != ScanPhase::Stopped);
     if (!visible) {
         _status_label->setHidden(true);
         _status_dot->setHidden(true);
@@ -559,13 +562,19 @@ void CoverFlowView::updateScanState()
         return;
     }
 
-    const bool failed = state.phase == ScanPhase::Error;
-    const std::string status = failed ? "LIBRARY ERROR" : "SCANNING " + std::to_string(state.files_discovered);
+    std::string status;
+    if (failed) {
+        status = "LIBRARY ERROR";
+    } else if (completed_with_failures) {
+        status = std::to_string(state.files_failed) + (state.files_failed == 1 ? " FILE FAILED" : " FILES FAILED");
+    } else {
+        status = "SCANNING " + std::to_string(state.files_discovered);
+    }
     if (status != _shown_status || state.phase != _shown_scan_phase) {
         _shown_status = status;
         _shown_scan_phase = state.phase;
         _status_label->setText(_shown_status);
-        _status_dot->setBgColor(lv_color_hex(failed ? 0xf15c4b : 0x3fcc75));
+        _status_dot->setBgColor(lv_color_hex(failed || completed_with_failures ? 0xf15c4b : 0x3fcc75));
         _status_label->setHidden(false);
         _status_dot->setHidden(false);
         _status_label->align(LV_ALIGN_TOP_RIGHT, -7, 3);

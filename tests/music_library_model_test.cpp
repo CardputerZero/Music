@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -42,6 +43,13 @@ void appendU32(std::vector<unsigned char>& bytes, std::uint32_t value)
     bytes.push_back(static_cast<unsigned char>((value >> 8U) & 0xffU));
     bytes.push_back(static_cast<unsigned char>((value >> 16U) & 0xffU));
     bytes.push_back(static_cast<unsigned char>((value >> 24U) & 0xffU));
+}
+
+void appendU64(std::vector<unsigned char>& bytes, std::uint64_t value)
+{
+    for (unsigned int shift = 0; shift < 64; shift += 8) {
+        bytes.push_back(static_cast<unsigned char>((value >> shift) & 0xffU));
+    }
 }
 
 void appendText(std::vector<unsigned char>& bytes, const char* text, std::size_t size)
@@ -76,6 +84,45 @@ void createWave(const fs::path& path)
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     stream.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
     require(static_cast<bool>(stream), "failed to create WAV fixture");
+}
+
+void createWave64(const fs::path& path)
+{
+    constexpr std::uint32_t sample_rate = 8000;
+    constexpr std::uint16_t channels = 1;
+    constexpr std::uint16_t bits = 16;
+    constexpr std::uint32_t sample_count = 800;
+    constexpr std::uint64_t data_size = sample_count * channels * (bits / 8U);
+    constexpr std::uint64_t file_size = 40 + 40 + 24 + data_size;
+    constexpr unsigned char riff_guid[] = {0x72, 0x69, 0x66, 0x66, 0x2e, 0x91, 0xcf, 0x11,
+                                           0xa5, 0xd6, 0x28, 0xdb, 0x04, 0xc1, 0x00, 0x00};
+    constexpr unsigned char wave_guid[] = {0x77, 0x61, 0x76, 0x65, 0xf3, 0xac, 0xd3, 0x11,
+                                           0x8c, 0xd1, 0x00, 0xc0, 0x4f, 0x8e, 0xdb, 0x8a};
+    constexpr unsigned char fmt_guid[] = {0x66, 0x6d, 0x74, 0x20, 0xf3, 0xac, 0xd3, 0x11,
+                                          0x8c, 0xd1, 0x00, 0xc0, 0x4f, 0x8e, 0xdb, 0x8a};
+    constexpr unsigned char data_guid[] = {0x64, 0x61, 0x74, 0x61, 0xf3, 0xac, 0xd3, 0x11,
+                                           0x8c, 0xd1, 0x00, 0xc0, 0x4f, 0x8e, 0xdb, 0x8a};
+
+    std::vector<unsigned char> bytes;
+    bytes.reserve(static_cast<std::size_t>(file_size));
+    bytes.insert(bytes.end(), std::begin(riff_guid), std::end(riff_guid));
+    appendU64(bytes, file_size);
+    bytes.insert(bytes.end(), std::begin(wave_guid), std::end(wave_guid));
+    bytes.insert(bytes.end(), std::begin(fmt_guid), std::end(fmt_guid));
+    appendU64(bytes, 40);
+    appendU16(bytes, 1);
+    appendU16(bytes, channels);
+    appendU32(bytes, sample_rate);
+    appendU32(bytes, sample_rate * channels * (bits / 8U));
+    appendU16(bytes, channels * (bits / 8U));
+    appendU16(bytes, bits);
+    bytes.insert(bytes.end(), std::begin(data_guid), std::end(data_guid));
+    appendU64(bytes, 24 + data_size);
+    bytes.resize(static_cast<std::size_t>(file_size), 0);
+
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    stream.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+    require(static_cast<bool>(stream), "failed to create Wave64 fixture");
 }
 
 void tagWave(const fs::path& path)
@@ -414,6 +461,7 @@ void runRetryableParseFailureTest(const fs::path& temporary)
     snapshot = waitForRevision(model, 1);
     require(snapshot->tracks.size() == 3, "empty library did not publish three example tracks");
     require(model.scanState().files_changed == 0, "failed audio parse was reported as indexed");
+    require(model.scanState().files_failed == 1, "failed audio parse was not reported in the scan result");
     require(snapshot->albums.size() == 5,
             "empty library did not publish All Music, the example album, and three guides");
     require(snapshot->albums[0].cover_path.filename() == "all-music.jpg" &&
@@ -446,6 +494,43 @@ void runRetryableParseFailureTest(const fs::path& temporary)
     model.stop();
 }
 
+void runDecoderFallbackTest(const fs::path& temporary)
+{
+    const fs::path library = temporary / "fallback-library";
+    const fs::path song = library / "fallback.wav";
+    const fs::path cover = library / "fallback.jpg";
+    const fs::path lyrics = library / "fallback.lrc";
+    fs::create_directories(library);
+    createWave64(song);
+    writeFile(cover, "fallback-cover");
+    writeFile(lyrics, "[00:00.00]Fallback lyrics\n");
+
+    TagLib::FileRef reference(song.c_str(), true, TagLib::AudioProperties::Fast);
+    require(reference.isNull() || !reference.file() || !reference.file()->isValid() || !reference.audioProperties() ||
+                reference.audioProperties()->lengthInMilliseconds() <= 0,
+            "TagLib unexpectedly accepted the miniaudio fallback fixture");
+
+    music::LibraryConfig config;
+    config.roots = {library};
+    config.database_path = temporary / "fallback-data" / "library.db";
+    config.cache_dir = temporary / "fallback-cache";
+
+    music::MusicLibraryModel model(config);
+    model.start();
+    const auto snapshot = waitForRevision(model, 1);
+    require(snapshot->tracks.size() == 1, "miniaudio fallback track was not indexed");
+    const music::Track& track = snapshot->tracks.front();
+    require(track.title == "fallback", "fallback track did not use its filename as the title");
+    require(track.duration_ms >= 95 && track.duration_ms <= 105, "fallback track duration is incorrect");
+    require(track.external_cover_path == cover && !track.cover_path.empty() && fs::is_regular_file(track.cover_path),
+            "fallback track did not retain its external artwork");
+    require(track.sidecar_lyrics_path == lyrics && track.lyrics_path == lyrics,
+            "fallback track did not retain its sidecar lyrics");
+    require(model.scanState().files_changed == 1 && model.scanState().files_failed == 0,
+            "successful miniaudio fallback was reported as a scan failure");
+    model.stop();
+}
+
 }  // namespace
 
 int main()
@@ -458,6 +543,7 @@ int main()
         runAssociatedAssetTest(temporary);
         runNestedUnavailableRootTest(temporary);
         runRetryableParseFailureTest(temporary);
+        runDecoderFallbackTest(temporary);
         std::error_code error;
         fs::remove_all(temporary, error);
         std::cout << "music_library_model_test: PASS\n";

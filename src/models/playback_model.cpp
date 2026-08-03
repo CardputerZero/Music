@@ -307,9 +307,14 @@ private:
         } else {
             const auto candidate = static_cast<std::int64_t>(_queue_index) + offset;
             if (candidate < 0 || candidate >= static_cast<std::int64_t>(_queue.size())) {
-                return false;
+                if (automatic && _mode == PlaybackMode::Sequential && candidate >= 0) {
+                    next_index = 0;
+                } else {
+                    return false;
+                }
+            } else {
+                next_index = static_cast<std::size_t>(candidate);
             }
-            next_index = static_cast<std::size_t>(candidate);
         }
         return playTrack(_queue[next_index], keep_paused);
     }

@@ -14,6 +14,7 @@
 #include <mp4file.h>
 #include <mp4item.h>
 #include <mp4tag.h>
+#include <miniaudio.h>
 #include <spdlog/spdlog.h>
 #include <tag.h>
 #include <tpropertymap.h>
@@ -97,6 +98,9 @@ struct CoverData {
     TagLib::ByteVector bytes;
     std::string extension;
 };
+
+constexpr ma_uint32 kDecoderProbeChannels = 2;
+constexpr ma_uint32 kDecoderProbeSampleRate = 48000;
 
 std::string lowerAscii(std::string value)
 {
@@ -743,6 +747,54 @@ void applyAssociatedAssets(Track& track, const AssociatedAssets& assets, const f
     }
 }
 
+std::optional<std::int64_t> miniaudioDuration(const fs::path& path)
+{
+    ma_decoder decoder{};
+    const ma_decoder_config config =
+        ma_decoder_config_init(ma_format_f32, kDecoderProbeChannels, kDecoderProbeSampleRate);
+    const ma_result init_result = ma_decoder_init_file(path.string().c_str(), &config, &decoder);
+    if (init_result != MA_SUCCESS) {
+        spdlog::warn("Music library: miniaudio could not open '{}': {} ({})", path.string(),
+                     ma_result_description(init_result), static_cast<int>(init_result));
+        return std::nullopt;
+    }
+
+    ma_uint64 frame_count = 0;
+    const ma_result length_result = ma_decoder_get_length_in_pcm_frames(&decoder, &frame_count);
+    if (length_result != MA_SUCCESS) {
+        spdlog::warn("Music library: miniaudio could not determine the duration for '{}': {} ({})", path.string(),
+                     ma_result_description(length_result), static_cast<int>(length_result));
+        ma_decoder_uninit(&decoder);
+        return std::nullopt;
+    }
+    if (frame_count == 0) {
+        spdlog::warn("Music library: miniaudio reported zero audio frames for '{}'", path.string());
+        ma_decoder_uninit(&decoder);
+        return std::nullopt;
+    }
+
+    std::array<float, kDecoderProbeChannels> probe_frame{};
+    ma_uint64 frames_read = 0;
+    const ma_result read_result = ma_decoder_read_pcm_frames(&decoder, probe_frame.data(), 1, &frames_read);
+    ma_decoder_uninit(&decoder);
+    if (frames_read != 1) {
+        spdlog::warn("Music library: miniaudio opened '{}' but could not decode audio: {} ({}) frames={}",
+                     path.string(), ma_result_description(read_result), static_cast<int>(read_result), frames_read);
+        return std::nullopt;
+    }
+
+    const ma_uint64 whole_seconds = frame_count / kDecoderProbeSampleRate;
+    if (whole_seconds > static_cast<ma_uint64>(std::numeric_limits<std::int64_t>::max() / 1000)) {
+        spdlog::warn("Music library: miniaudio reported an implausible duration for '{}': {} frames", path.string(),
+                     frame_count);
+        return std::nullopt;
+    }
+    const ma_uint64 remainder = frame_count % kDecoderProbeSampleRate;
+    const auto duration_ms =
+        static_cast<std::int64_t>(whole_seconds * 1000 + remainder * 1000 / kDecoderProbeSampleRate);
+    return std::max<std::int64_t>(1, duration_ms);
+}
+
 std::optional<Track> readTrack(const fs::path& path, const FileFingerprint& file_fingerprint, const fs::path& cache_dir,
                                const AssociatedAssets& assets)
 {
@@ -753,18 +805,32 @@ std::optional<Track> readTrack(const fs::path& path, const FileFingerprint& file
     track.mtime_ns = file_fingerprint.mtime_ns;
 
     TagLib::FileRef reference(path.c_str(), true, TagLib::AudioProperties::Fast);
-    if (reference.isNull() || !reference.file() || !reference.file()->isValid()) {
-        spdlog::warn("Music library: TagLib could not parse '{}'; it will be retried on the next scan", path.string());
-        return std::nullopt;
+    const bool taglib_valid = !reference.isNull() && reference.file() && reference.file()->isValid();
+    const auto* taglib_audio = taglib_valid ? reference.audioProperties() : nullptr;
+    if (taglib_audio && taglib_audio->lengthInMilliseconds() > 0) {
+        track.duration_ms = taglib_audio->lengthInMilliseconds();
     } else {
-        const auto* audio = reference.audioProperties();
-        if (!audio || audio->lengthInMilliseconds() <= 0) {
-            spdlog::warn("Music library: no valid audio properties in '{}'; it will be retried on the next scan",
+        if (taglib_valid) {
+            spdlog::warn("Music library: TagLib parsed '{}' but reported no valid duration; trying miniaudio",
                          path.string());
+        } else {
+            spdlog::warn("Music library: TagLib could not parse '{}'; trying miniaudio", path.string());
+        }
+
+        const auto fallback_duration = miniaudioDuration(path);
+        if (!fallback_duration) {
+            spdlog::warn(
+                "Music library: excluding '{}' because both TagLib metadata parsing and miniaudio decoding "
+                "failed; it will be retried on the next scan",
+                path.string());
             return std::nullopt;
         }
-        track.duration_ms = audio->lengthInMilliseconds();
+        track.duration_ms = *fallback_duration;
+        spdlog::info("Music library: miniaudio accepted '{}' with duration={} ms; using fallback metadata",
+                     path.string(), track.duration_ms);
+    }
 
+    if (taglib_valid) {
         if (const auto* tag = reference.tag()) {
             const std::string title = tagString(tag->title());
             if (!title.empty()) {
@@ -1458,6 +1524,7 @@ private:
         complete.files_processed = processed;
         complete.files_changed = changed_tracks.size();
         complete.files_removed = deleted_paths.size();
+        complete.files_failed = read_failures;
         complete.message =
             read_failures == 0 ? "Music library is ready" : std::to_string(read_failures) + " file(s) will be retried";
         setScanState(std::move(complete));

@@ -85,6 +85,7 @@ struct ScanState {
     std::uint64_t files_processed = 0;
     std::uint64_t files_changed = 0;
     std::uint64_t files_removed = 0;
+    std::uint64_t files_failed = 0;
     std::string message;
 };
 
