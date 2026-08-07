@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(M5CardputerZeroMusic VERSION 0.1.1 LANGUAGES C CXX ASM)
+project(M5CardputerZeroMusic VERSION 0.1.2 LANGUAGES C CXX ASM)
 
 option(MUSIC_USE_SDL "Use LVGL's SDL backend for desktop testing" ON)
 option(BUILD_TESTING "Build Music tests" OFF)
@@ -247,6 +247,17 @@ set_target_properties(${MUSIC_BIN_NAME} PROPERTIES
 )
 
 if(BUILD_TESTING)
+    add_executable(music_playback_queue_tests
+        tests/playback_queue_test.cpp
+    )
+    target_include_directories(music_playback_queue_tests PRIVATE
+        "${MUSIC_SRC_DIR}"
+    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(music_playback_queue_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    add_test(NAME music_playback_queue COMMAND music_playback_queue_tests)
+
     add_executable(music_lyrics_tests
         tests/music_lyrics_test.cpp
         src/core/music_lyrics.cpp

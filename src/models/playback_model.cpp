@@ -1,5 +1,7 @@
 #include "models/playback_model.hpp"
 
+#include "models/playback_queue.hpp"
+
 #include <miniaudio.h>
 #include <spdlog/spdlog.h>
 
@@ -305,16 +307,7 @@ private:
                 next_index = randomQueueIndex();
             } while (next_index == _queue_index);
         } else {
-            const auto candidate = static_cast<std::int64_t>(_queue_index) + offset;
-            if (candidate < 0 || candidate >= static_cast<std::int64_t>(_queue.size())) {
-                if (automatic && _mode == PlaybackMode::Sequential && candidate >= 0) {
-                    next_index = 0;
-                } else {
-                    return false;
-                }
-            } else {
-                next_index = static_cast<std::size_t>(candidate);
-            }
+            next_index = playback_detail::adjacentQueueIndex(_queue_index, _queue.size(), offset);
         }
         return playTrack(_queue[next_index], keep_paused);
     }
