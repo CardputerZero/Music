@@ -62,6 +62,7 @@ jobs:
             -DMUSIC_USE_SDL=OFF \
             -DBUILD_TESTING=ON
           cmake --build build/tests --parallel 2 --target \
+            music_playback_queue_tests \
             music_lyrics_tests \
             music_cover_rasterizer_tests \
             music_cover_image_loader_tests \
