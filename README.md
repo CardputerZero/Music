@@ -13,7 +13,7 @@ Local music player and indexed album browser for M5Stack CardputerZero.
 - Play album queues with sequential, shuffle, and repeat-one modes
 - Display embedded lyrics or matching `.lrc` files with synchronized scrolling
 - Render multilingual metadata with bundled Noto Sans SC and JP fonts
-- Show a bundled three-track `Piano Classics` album and setup guides when the user library is empty
+- Show bundled example music, synchronized sample lyrics, and setup guides when the user library is empty
 
 ## Dependencies
 

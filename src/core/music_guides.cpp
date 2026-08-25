@@ -64,18 +64,33 @@ Track makeExampleTrack(std::int64_t id, const char* filename, const char* title,
     return track;
 }
 
+Track makeDaisyBellTrack()
+{
+    Track track;
+    track.id = -4;
+    track.path = assetPath("examples/Daisy Bell (Bicycle Built for Two).mp3");
+    track.title = "Daisy Bell (Bicycle Built for Two)";
+    track.artist = "Harry Dacre";
+    track.genre = "Popular Song";
+    track.year = 1892;
+    track.duration_ms = 38635;
+    track.lyrics_path = assetPath("examples/Daisy Bell (Bicycle Built for Two).lrc");
+    return track;
+}
+
 }  // namespace
 
 const std::array<MusicGuide, 3>& musicGuides() { return kGuides; }
 
-const std::array<Track, 3>& exampleTracks()
+const std::array<Track, 4>& exampleTracks()
 {
-    static const std::array<Track, 3> tracks = {
+    static const std::array<Track, 4> tracks = {
         makeExampleTrack(-1, "01 - Maple Leaf Rag.mp3", "Maple Leaf Rag", "Scott Joplin", "Ragtime", 1899, 1, 169561),
         makeExampleTrack(-2, "02 - Clair de Lune.mp3", "Clair de Lune, L. 32", "Claude Debussy", "Classical", 1905, 2,
                          246962),
         makeExampleTrack(-3, "03 - Liebesträume No. 3.mp3", "Liebesträume No. 3, S. 541/3", "Franz Liszt", "Classical",
                          1850, 3, 243879),
+        makeDaisyBellTrack(),
     };
     return tracks;
 }

@@ -1,5 +1,7 @@
 #include "rendering/artwork_palette.hpp"
 
+#include "assets/runtime_assets.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -272,26 +274,27 @@ ui::PageTheme extractArtworkTheme(const CoverImage& artwork)
 
 ui::PageTheme ArtworkPaletteCache::themeFor(const std::filesystem::path& artwork_path)
 {
+    const std::filesystem::path display_path = displayCoverPath(artwork_path);
     std::error_code error;
-    if (artwork_path.empty() || !std::filesystem::is_regular_file(artwork_path, error) || error) {
+    if (display_path.empty() || !std::filesystem::is_regular_file(display_path, error) || error) {
         return ui::defaultPageTheme();
     }
-    const std::uintmax_t size = std::filesystem::file_size(artwork_path, error);
+    const std::uintmax_t size = std::filesystem::file_size(display_path, error);
     if (error) {
         return ui::defaultPageTheme();
     }
-    const auto modified_at = std::filesystem::last_write_time(artwork_path, error);
+    const auto modified_at = std::filesystem::last_write_time(display_path, error);
     if (error) {
         return ui::defaultPageTheme();
     }
 
-    const std::string key = artwork_path.string();
+    const std::string key = display_path.string();
     const auto cached = _entries.find(key);
     if (cached != _entries.end() && cached->second.size == size && cached->second.modified_at == modified_at) {
         return cached->second.theme;
     }
 
-    const auto artwork = loadCoverImage(artwork_path, kPaletteImageSize);
+    const auto artwork = loadCoverImageWithFallback(artwork_path, kPaletteImageSize);
     const ui::PageTheme theme = artwork ? extractArtworkTheme(*artwork) : ui::defaultPageTheme();
     _entries[key] = {size, modified_at, theme};
     return theme;

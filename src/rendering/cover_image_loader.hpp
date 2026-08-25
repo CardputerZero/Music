@@ -19,5 +19,7 @@ struct CoverImage {
 };
 
 std::optional<CoverImage> loadCoverImage(const std::filesystem::path& path, int output_size);
+std::optional<CoverImage> loadCoverImageWithFallback(const std::filesystem::path& path, int output_size);
+void invalidateCoverImageCache(const void* source);
 
 }  // namespace music::rendering

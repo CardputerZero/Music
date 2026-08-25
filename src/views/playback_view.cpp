@@ -278,6 +278,10 @@ void PlaybackView::onEnter(lv_obj_t* parent)
 
 void PlaybackView::onExit()
 {
+    if (_cover_descriptor.header.magic == LV_IMAGE_HEADER_MAGIC) {
+        _cover->setSrc(nullptr);
+        rendering::invalidateCoverImageCache(&_cover_descriptor);
+    }
     _progress_fill.reset();
     _progress_track.reset();
     _track_artist.reset();
@@ -389,7 +393,8 @@ void PlaybackView::refreshContent()
     }
     const PlaybackSnapshot playback = _view_model.playbackSnapshot();
     const Track* track = _view_model.track();
-    if (playback.track_id != _shown_track_id || (track && track->cover_path != _shown_cover_path)) {
+    const std::filesystem::path cover_path = track ? track->cover_path : std::filesystem::path{};
+    if (playback.track_id != _shown_track_id || cover_path != _shown_cover_path) {
         _shown_track_id = playback.track_id;
         updateCover(track);
         updateMetadata(playback);
@@ -409,9 +414,14 @@ void PlaybackView::refreshContent()
 
 void PlaybackView::updateCover(const Track* track)
 {
+    if (_cover_descriptor.header.magic == LV_IMAGE_HEADER_MAGIC) {
+        _cover->setSrc(nullptr);
+        rendering::invalidateCoverImageCache(&_cover_descriptor);
+    }
     _shown_cover_path = track ? track->cover_path : std::filesystem::path{};
-    _cover_image = track ? rendering::loadCoverImage(track->cover_path, kCoverSize).value_or(rendering::CoverImage{})
-                         : rendering::CoverImage{};
+    _cover_image =
+        track ? rendering::loadCoverImageWithFallback(track->cover_path, kCoverSize).value_or(rendering::CoverImage{})
+              : rendering::CoverImage{};
     if (!_cover_image.valid()) {
         _cover->setHidden(true);
         return;

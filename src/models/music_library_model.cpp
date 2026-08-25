@@ -63,7 +63,10 @@ bool appendExampleTracksIfAvailable(std::vector<Track>& tracks)
     const auto& examples = exampleTracks();
     const bool available = std::all_of(examples.begin(), examples.end(), [](const Track& track) {
         std::error_code error;
-        return fs::is_regular_file(track.path, error);
+        if (!fs::is_regular_file(track.path, error) || error) {
+            return false;
+        }
+        return track.lyrics_path.empty() || (fs::is_regular_file(track.lyrics_path, error) && !error);
     });
     if (!available) {
         spdlog::warn("Music library: bundled example tracks are incomplete; showing setup guides only");

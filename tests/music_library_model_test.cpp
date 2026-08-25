@@ -459,7 +459,7 @@ void runRetryableParseFailureTest(const fs::path& temporary)
 
     model.start();
     snapshot = waitForRevision(model, 1);
-    require(snapshot->tracks.size() == 3, "empty library did not publish three example tracks");
+    require(snapshot->tracks.size() == 4, "empty library did not publish four example tracks");
     require(model.scanState().files_changed == 0, "failed audio parse was reported as indexed");
     require(model.scanState().files_failed == 1, "failed audio parse was not reported in the scan result");
     require(snapshot->albums.size() == 5,
@@ -474,14 +474,24 @@ void runRetryableParseFailureTest(const fs::path& temporary)
                 snapshot->albums[3].guide_topic == music::GuideTopic::CoverArt &&
                 snapshot->albums[4].guide_topic == music::GuideTopic::Lyrics,
             "empty library guide order or topics are incorrect");
+    std::size_t piano_tracks = 0;
+    bool found_daisy = false;
     for (const auto& track : snapshot->tracks) {
-        require(track.id < 0 && track.album == "Piano Classics" && fs::is_regular_file(track.path),
-                "bundled example track is invalid");
+        require(track.id < 0 && fs::is_regular_file(track.path), "bundled example track is invalid");
+        if (track.album == "Piano Classics") {
+            ++piano_tracks;
+        }
+        if (track.id == -4) {
+            found_daisy = track.title == "Daisy Bell (Bicycle Built for Two)" && track.album.empty() &&
+                          fs::is_regular_file(track.lyrics_path);
+        }
         TagLib::FileRef reference(track.path.c_str(), true, TagLib::AudioProperties::Fast);
         require(!reference.isNull() && reference.file() && reference.file()->isValid() && reference.audioProperties() &&
                     reference.audioProperties()->lengthInMilliseconds() > 0,
                 "TagLib could not parse a bundled example track");
     }
+    require(piano_tracks == 3, "Piano Classics example album track count changed unexpectedly");
+    require(found_daisy, "Daisy Bell example or its synchronized lyrics are missing");
 
     writeFile(song, valid_bytes);
     fs::last_write_time(song, original_time);

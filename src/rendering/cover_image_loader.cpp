@@ -1,7 +1,10 @@
 #include "rendering/cover_image_loader.hpp"
 
+#include "assets/runtime_assets.hpp"
+
 #include <lvgl.h>
 #include "src/draw/lv_image_decoder_private.h"
+#include "src/misc/cache/instance/lv_image_cache.h"
 
 #include <spdlog/spdlog.h>
 
@@ -350,6 +353,27 @@ std::optional<CoverImage> loadCoverImage(const std::filesystem::path& path, int 
         return std::nullopt;
     }
     return output;
+}
+
+std::optional<CoverImage> loadCoverImageWithFallback(const std::filesystem::path& path, int output_size)
+{
+    const std::filesystem::path display_path = displayCoverPath(path);
+    if (auto image = loadCoverImage(display_path, output_size)) {
+        return image;
+    }
+
+    const std::filesystem::path fallback_path = defaultCoverPath();
+    if (display_path != fallback_path) {
+        return loadCoverImage(fallback_path, output_size);
+    }
+    return std::nullopt;
+}
+
+void invalidateCoverImageCache(const void* source)
+{
+    if (source) {
+        lv_image_cache_drop(source);
+    }
 }
 
 }  // namespace music::rendering

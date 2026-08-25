@@ -1,6 +1,7 @@
 #include "core/music_app.hpp"
 
 #include "assets/font_assets.hpp"
+#include "assets/runtime_assets.hpp"
 #include "core/music_guides.hpp"
 #include "input/music_keys.hpp"
 
@@ -248,10 +249,11 @@ void MusicApp::updatePlaybackTheme()
 {
     const Track* track = _playback_view_model.track();
     const std::filesystem::path cover_path = track ? track->cover_path : std::filesystem::path{};
-    if (cover_path == _playback_theme_path) {
+    const std::filesystem::path display_path = displayCoverPath(cover_path);
+    if (display_path == _playback_theme_path) {
         return;
     }
-    _playback_theme_path = cover_path;
+    _playback_theme_path = display_path;
     _playback_view.setTheme(_artwork_palette_cache.themeFor(cover_path));
 }
 

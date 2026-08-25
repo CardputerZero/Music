@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(M5CardputerZeroMusic VERSION 0.1.2 LANGUAGES C CXX ASM)
+project(M5CardputerZeroMusic VERSION 0.1.3 LANGUAGES C CXX ASM)
 
 option(MUSIC_USE_SDL "Use LVGL's SDL backend for desktop testing" ON)
 option(BUILD_TESTING "Build Music tests" OFF)
@@ -287,6 +287,7 @@ if(BUILD_TESTING)
 
     add_executable(music_cover_image_loader_tests
         tests/cover_image_loader_test.cpp
+        src/assets/runtime_assets.cpp
         src/rendering/artwork_palette.cpp
         src/rendering/cover_image_loader.cpp
     )
@@ -295,6 +296,7 @@ if(BUILD_TESTING)
     )
     target_compile_definitions(music_cover_image_loader_tests PRIVATE
         MUSIC_BUNDLED_ARTWORK_TEST_ROOT="${MUSIC_ROOT}/assets/covers"
+        MUSIC_ASSETS_PATH="${MUSIC_ROOT}/assets"
     )
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(music_cover_image_loader_tests PRIVATE -Wall -Wextra -Wpedantic)

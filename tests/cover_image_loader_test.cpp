@@ -222,6 +222,25 @@ void testBundledArtwork()
     }
 }
 
+void testDefaultArtworkFallback(const fs::path& directory)
+{
+    const auto expected =
+        music::rendering::loadCoverImage(fs::path(MUSIC_BUNDLED_ARTWORK_TEST_ROOT) / "all-music.jpg", 32);
+    require(expected && expected->valid(), "bundled All Music cover did not decode");
+
+    const auto missing = music::rendering::loadCoverImageWithFallback(directory / "missing.jpg", 32);
+    require(missing && missing->width == expected->width && missing->height == expected->height &&
+                missing->pixels == expected->pixels,
+            "missing artwork did not use the bundled All Music cover");
+
+    const fs::path invalid = directory / "invalid.jpg";
+    writeBinary(invalid, {0x00, 0x01, 0x02, 0x03});
+    const auto unreadable = music::rendering::loadCoverImageWithFallback(invalid, 32);
+    require(unreadable && unreadable->width == expected->width && unreadable->height == expected->height &&
+                unreadable->pixels == expected->pixels,
+            "unreadable artwork did not use the bundled All Music cover");
+}
+
 void testArtworkPalette()
 {
     music::rendering::CoverImage artwork;
@@ -259,6 +278,7 @@ int main()
         testJpegDecodeAndLimits(temporary.path());
         testJpegErrorRecovery(temporary.path());
         testBundledArtwork();
+        testDefaultArtworkFallback(temporary.path());
         testArtworkPalette();
         lv_deinit();
         std::cout << "cover image loader tests passed\n";

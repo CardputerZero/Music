@@ -390,6 +390,10 @@ void AlbumListView::onEnter(lv_obj_t* parent)
 
 void AlbumListView::onExit()
 {
+    if (_cover_descriptor.header.magic == LV_IMAGE_HEADER_MAGIC) {
+        _cover->setSrc(nullptr);
+        rendering::invalidateCoverImageCache(&_cover_descriptor);
+    }
     for (auto& bar : _spectrum_bars) {
         bar.reset();
     }
@@ -522,9 +526,14 @@ void AlbumListView::rebuildContent()
     const std::string metadata = albumMetadata(*album);
     _metadata->setText(metadata);
 
-    _cover_image = rendering::loadCoverImage(album->cover_path, kCoverSize).value_or(rendering::CoverImage{});
+    if (_cover_descriptor.header.magic == LV_IMAGE_HEADER_MAGIC) {
+        _cover->setSrc(nullptr);
+        rendering::invalidateCoverImageCache(&_cover_descriptor);
+    }
+    _cover_descriptor = {};
+    _cover_image =
+        rendering::loadCoverImageWithFallback(album->cover_path, kCoverSize).value_or(rendering::CoverImage{});
     if (_cover_image.valid()) {
-        _cover_descriptor = {};
         _cover_descriptor.header.magic = LV_IMAGE_HEADER_MAGIC;
         _cover_descriptor.header.cf = LV_COLOR_FORMAT_RGB565;
         _cover_descriptor.header.w = static_cast<std::uint32_t>(_cover_image.width);
@@ -533,6 +542,9 @@ void AlbumListView::rebuildContent()
         _cover_descriptor.data_size = static_cast<std::uint32_t>(_cover_image.pixels.size() * sizeof(std::uint16_t));
         _cover_descriptor.data = reinterpret_cast<const std::uint8_t*>(_cover_image.pixels.data());
         _cover->setSrc(&_cover_descriptor);
+        _cover->setHidden(false);
+    } else {
+        _cover->setHidden(true);
     }
 
     const PlaybackSnapshot playback = _view_model.playbackSnapshot();

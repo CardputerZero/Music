@@ -17,7 +17,7 @@ struct MusicGuide {
 };
 
 const std::array<MusicGuide, 3>& musicGuides();
-const std::array<Track, 3>& exampleTracks();
+const std::array<Track, 4>& exampleTracks();
 const MusicGuide* findMusicGuide(GuideTopic topic);
 Album makeAllMusicAlbum();
 Album makeGuideAlbum(const MusicGuide& guide);

@@ -318,10 +318,8 @@ CoverFlowView::CachedCover& CoverFlowView::coverFor(const Album& album)
 
 rendering::CoverImage CoverFlowView::loadCover(const Album& album) const
 {
-    if (!album.cover_path.empty() && std::filesystem::is_regular_file(album.cover_path)) {
-        if (auto image = rendering::loadCoverImage(album.cover_path, kCoverTextureSize)) {
-            return std::move(*image);
-        }
+    if (auto image = rendering::loadCoverImageWithFallback(album.cover_path, kCoverTextureSize)) {
+        return std::move(*image);
     }
     return makeFallbackCover(album);
 }

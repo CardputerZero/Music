@@ -84,6 +84,8 @@ EXAMPLE_COVER="${ROOT_DIR}/assets/covers/examples.jpg"
 EXAMPLE_MAPLE_LEAF="${ROOT_DIR}/assets/examples/01 - Maple Leaf Rag.mp3"
 EXAMPLE_CLAIR_DE_LUNE="${ROOT_DIR}/assets/examples/02 - Clair de Lune.mp3"
 EXAMPLE_LIEBESTRAUME="${ROOT_DIR}/assets/examples/03 - Liebesträume No. 3.mp3"
+EXAMPLE_DAISY_BELL="${ROOT_DIR}/assets/examples/Daisy Bell (Bicycle Built for Two).mp3"
+EXAMPLE_DAISY_BELL_LYRICS="${ROOT_DIR}/assets/examples/Daisy Bell (Bicycle Built for Two).lrc"
 EXAMPLE_SOURCES="${ROOT_DIR}/assets/examples/SOURCES.txt"
 THIRD_PARTY_NOTICES="${ROOT_DIR}/THIRD_PARTY_NOTICES.md"
 CURSOR_HOVER="${ROOT_DIR}/assets/images/cursor_hover.png"
@@ -112,6 +114,8 @@ for path in \
     "${EXAMPLE_MAPLE_LEAF}" \
     "${EXAMPLE_CLAIR_DE_LUNE}" \
     "${EXAMPLE_LIEBESTRAUME}" \
+    "${EXAMPLE_DAISY_BELL}" \
+    "${EXAMPLE_DAISY_BELL_LYRICS}" \
     "${EXAMPLE_SOURCES}" \
     "${THIRD_PARTY_NOTICES}" \
     "${CURSOR_HOVER}" \
@@ -175,6 +179,10 @@ install -m 644 "${EXAMPLE_COVER}" "${STAGE_DIR}/usr/share/Music/covers/examples.
 install -m 644 "${EXAMPLE_MAPLE_LEAF}" "${STAGE_DIR}/usr/share/Music/examples/01 - Maple Leaf Rag.mp3"
 install -m 644 "${EXAMPLE_CLAIR_DE_LUNE}" "${STAGE_DIR}/usr/share/Music/examples/02 - Clair de Lune.mp3"
 install -m 644 "${EXAMPLE_LIEBESTRAUME}" "${STAGE_DIR}/usr/share/Music/examples/03 - Liebesträume No. 3.mp3"
+install -m 644 "${EXAMPLE_DAISY_BELL}" \
+    "${STAGE_DIR}/usr/share/Music/examples/Daisy Bell (Bicycle Built for Two).mp3"
+install -m 644 "${EXAMPLE_DAISY_BELL_LYRICS}" \
+    "${STAGE_DIR}/usr/share/Music/examples/Daisy Bell (Bicycle Built for Two).lrc"
 install -m 644 "${EXAMPLE_SOURCES}" "${STAGE_DIR}/usr/share/Music/examples/SOURCES.txt"
 install -m 644 "${THIRD_PARTY_NOTICES}" "${STAGE_DIR}/usr/share/doc/${PACKAGE_NAME}/THIRD_PARTY_NOTICES.md"
 install -m 644 "${CURSOR_HOVER}" "${STAGE_DIR}/usr/share/Music/images/cursor_hover.png"
