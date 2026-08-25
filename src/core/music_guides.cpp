@@ -70,7 +70,7 @@ Track makeDaisyBellTrack()
     track.id = -4;
     track.path = assetPath("examples/Daisy Bell (Bicycle Built for Two).mp3");
     track.title = "Daisy Bell (Bicycle Built for Two)";
-    track.artist = "Harry Dacre";
+    track.artist = "IBM 7094";
     track.genre = "Popular Song";
     track.year = 1892;
     track.duration_ms = 38635;

@@ -14,5 +14,9 @@
     distributed under CC BY-SA 3.0 DE.
   - Rendering uses FluidSynth and MuseScore General Lite; the selected Splendid Grand piano samples are public
     domain. Full source URLs, attribution, licenses, and checksums are recorded in `assets/examples/SOURCES.txt`.
+- Bundled `Daisy Bell (Bicycle Built for Two)` example:
+  - Words and music by Harry Dacre (1892).
+  - Performed by the IBM 7094 at Bell Telephone Laboratories (1961), with vocal synthesis by John L. Kelly Jr.
+    and Carol Lockbaum, and musical accompaniment by Max V. Mathews.
 
 See each dependency repository and font metadata for the complete license text.

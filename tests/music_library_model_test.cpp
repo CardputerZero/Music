@@ -482,8 +482,8 @@ void runRetryableParseFailureTest(const fs::path& temporary)
             ++piano_tracks;
         }
         if (track.id == -4) {
-            found_daisy = track.title == "Daisy Bell (Bicycle Built for Two)" && track.album.empty() &&
-                          fs::is_regular_file(track.lyrics_path);
+            found_daisy = track.title == "Daisy Bell (Bicycle Built for Two)" && track.artist == "IBM 7094" &&
+                          track.album.empty() && fs::is_regular_file(track.lyrics_path);
         }
         TagLib::FileRef reference(track.path.c_str(), true, TagLib::AudioProperties::Fast);
         require(!reference.isNull() && reference.file() && reference.file()->isValid() && reference.audioProperties() &&

@@ -32,6 +32,15 @@ Output license: CC BY-SA 3.0 DE
 MIDI SHA-256: 1590cfbbe2337cce3deb06f6a5a38e576fa8e031dab3fcab3319a0a382b2ae27
 MP3 SHA-256: 6c7d75ddd8cd99f3320a9cd18f193c5006deabc7d157d34166f55417e11e48da
 
+Daisy Bell (Bicycle Built for Two).mp3
+Title: Daisy Bell (Bicycle Built for Two)
+Words and music: Harry Dacre (1892)
+Performance: IBM 7094 at Bell Telephone Laboratories (1961)
+Vocal synthesis: John L. Kelly Jr. and Carol Lockbaum
+Musical accompaniment: Max V. Mathews
+MP3 SHA-256: aad80a5327e7701ab8d2251d4c99d1a438368bf72efea30a4be6d48008ee3b9d
+LRC SHA-256: 5395a2a1094b72c9c200d622cb75423924327474e9efe7f720153e0f0b2bff60
+
 Synthesis
 ---------
 Renderer: FluidSynth 2.3.4 (LGPL)
