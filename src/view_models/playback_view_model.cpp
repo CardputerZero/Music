@@ -13,7 +13,8 @@ namespace {
 bool isPlaybackKey(std::uint32_t key)
 {
     return key == music_key::Key4 || key == music_key::Key5 || key == music_key::Key6 || key == music_key::Key7 ||
-           key == music_key::Key8;
+           key == music_key::Key8 || key == music_key::PlayPause || key == music_key::Previous ||
+           key == music_key::Next;
 }
 
 std::string readTextFile(const std::filesystem::path& path)
@@ -152,11 +153,11 @@ void PlaybackViewModel::activate(std::uint32_t key)
 {
     if (key == music_key::Key4) {
         _fullscreen = !_fullscreen;
-    } else if (key == music_key::Key5) {
+    } else if (key == music_key::Key5 || key == music_key::Previous) {
         _playback.previous();
-    } else if (key == music_key::Key6) {
+    } else if (key == music_key::Key6 || key == music_key::PlayPause) {
         _playback.toggleCurrent();
-    } else if (key == music_key::Key7) {
+    } else if (key == music_key::Key7 || key == music_key::Next) {
         _playback.next();
     } else if (key == music_key::Key8) {
         _playback.cycleMode();

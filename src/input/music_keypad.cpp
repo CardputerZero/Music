@@ -39,7 +39,9 @@ bool hasMusicKeys(int fd)
     }
     return testBit(key_bits, KEY_ESC) || testBit(key_bits, KEY_ENTER) || testBit(key_bits, KEY_LEFT) ||
            testBit(key_bits, KEY_RIGHT) || testBit(key_bits, KEY_F) || testBit(key_bits, KEY_X) ||
-           testBit(key_bits, KEY_Z) || testBit(key_bits, KEY_C) || testBit(key_bits, KEY_SPACE);
+           testBit(key_bits, KEY_Z) || testBit(key_bits, KEY_C) || testBit(key_bits, KEY_SPACE) ||
+           testBit(key_bits, KEY_PLAYPAUSE) || testBit(key_bits, KEY_PREVIOUSSONG) || testBit(key_bits, KEY_NEXTSONG) ||
+           testBit(key_bits, KEY_REWIND) || testBit(key_bits, KEY_FASTFORWARD);
 }
 
 }  // namespace
@@ -164,6 +166,17 @@ void MusicKeypad::pushLinuxKey(std::uint16_t code, std::int32_t value)
             break;
         case KEY_SPACE:
             key = music_key::Space;
+            break;
+        case KEY_PLAYPAUSE:
+            key = music_key::PlayPause;
+            break;
+        case KEY_PREVIOUSSONG:
+        case KEY_REWIND:
+            key = music_key::Previous;
+            break;
+        case KEY_NEXTSONG:
+        case KEY_FASTFORWARD:
+            key = music_key::Next;
             break;
         case KEY_4:
         case KEY_KP4:
