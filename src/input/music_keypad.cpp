@@ -41,7 +41,7 @@ bool hasMusicKeys(int fd)
            testBit(key_bits, KEY_RIGHT) || testBit(key_bits, KEY_F) || testBit(key_bits, KEY_X) ||
            testBit(key_bits, KEY_Z) || testBit(key_bits, KEY_C) || testBit(key_bits, KEY_SPACE) ||
            testBit(key_bits, KEY_PLAYPAUSE) || testBit(key_bits, KEY_PREVIOUSSONG) || testBit(key_bits, KEY_NEXTSONG) ||
-           testBit(key_bits, KEY_REWIND) || testBit(key_bits, KEY_FASTFORWARD);
+           testBit(key_bits, KEY_REWIND) || testBit(key_bits, KEY_FASTFORWARD) || testBit(key_bits, KEY_HELP);
 }
 
 }  // namespace
@@ -177,6 +177,9 @@ void MusicKeypad::pushLinuxKey(std::uint16_t code, std::int32_t value)
         case KEY_NEXTSONG:
         case KEY_FASTFORWARD:
             key = music_key::Next;
+            break;
+        case KEY_HELP:
+            key = music_key::Help;
             break;
         case KEY_4:
         case KEY_KP4:

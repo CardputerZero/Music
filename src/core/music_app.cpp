@@ -47,7 +47,8 @@ MusicApp::MusicApp(MusicConfig config)
       _cover_flow_view(_cover_flow_view_model),
       _album_list_view(_album_list_view_model),
       _playback_view(_playback_view_model),
-      _info_page_view(_info_page_view_model)
+      _info_page_view(_info_page_view_model),
+      _help_info_page_view(_help_info_page_view_model)
 {
 }
 
@@ -67,12 +68,16 @@ void MusicApp::start()
     initFontAssets();
     _cover_flow_view_model.onEnter();
     _cover_flow_view.onEnter(lv_screen_active());
+    _help_active = false;
 }
 
 void MusicApp::stop()
 {
     if (!_started) {
         return;
+    }
+    if (_help_active) {
+        closeHelpPage();
     }
     switch (_router.page()) {
         case PageId::CoverFlow:
@@ -101,6 +106,23 @@ void MusicApp::stop()
 
 void MusicApp::onKey(std::uint32_t key, bool pressed)
 {
+    if (_help_active) {
+        if (pressed && (key == music_key::Help || key == music_key::Escape)) {
+            closeHelpPage();
+        } else if (key == music_key::Up) {
+            _help_info_page_view.onScrollKey(-28, pressed);
+        } else if (key == music_key::Down) {
+            _help_info_page_view.onScrollKey(28, pressed);
+        }
+        return;
+    }
+    if (key == music_key::Help) {
+        if (pressed) {
+            showHelpPage();
+        }
+        return;
+    }
+
     switch (_router.page()) {
         case PageId::CoverFlow:
             if (pressed && key == music_key::Escape) {
@@ -156,6 +178,10 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
 void MusicApp::update(float delta_seconds)
 {
     _playback.update(delta_seconds);
+    if (_help_active) {
+        _help_info_page_view.update(delta_seconds);
+        return;
+    }
     switch (_router.page()) {
         case PageId::CoverFlow:
             _cover_flow_view_model.update(delta_seconds);
@@ -179,6 +205,10 @@ void MusicApp::update(float delta_seconds)
 
 void MusicApp::draw()
 {
+    if (_help_active) {
+        _help_info_page_view.draw();
+        return;
+    }
     switch (_router.page()) {
         case PageId::CoverFlow:
             _cover_flow_view.draw();
@@ -272,6 +302,34 @@ void MusicApp::showInfoPage(InfoPageContent content, ui::PageTheme theme, PageId
     _router.navigate(PageId::Info);
     _info_page_view_model.onEnter();
     _info_page_view.onEnter(lv_screen_active());
+}
+
+void MusicApp::showHelpPage()
+{
+    if (_help_active) {
+        return;
+    }
+
+    _help_info_page_view.setContent({
+        "Help",
+        "Listen to music in the current user's \"music\" directory, with album artwork and lyrics.\n\n"
+        "Sample music is hidden when the \"music\" directory contains music.\n\n"
+        "Number keys 4-8: operations",
+    });
+    _help_info_page_view.setTheme(ui::defaultPageTheme());
+    _help_info_page_view_model.onEnter();
+    _help_info_page_view.onEnter(lv_screen_active());
+    _help_active = true;
+}
+
+void MusicApp::closeHelpPage()
+{
+    if (!_help_active) {
+        return;
+    }
+    _help_info_page_view.onExit();
+    _help_info_page_view_model.onExit();
+    _help_active = false;
 }
 
 void MusicApp::returnFromInfo()

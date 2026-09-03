@@ -21,6 +21,8 @@ constexpr std::uint32_t Space = 0x1000c;
 constexpr std::uint32_t PlayPause = 0x1000d;
 constexpr std::uint32_t Previous = 0x1000e;
 constexpr std::uint32_t Next = 0x1000f;
+// The keyboard firmware emits KEY_HELP for the Fn + H shortcut.
+constexpr std::uint32_t Help = 0x10010;
 constexpr std::uint32_t NowPlaying = Key8;
 
 }  // namespace music::music_key

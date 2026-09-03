@@ -80,6 +80,7 @@ Key controls:
 - Playback: `4` fullscreen, `5` previous, `6` play/pause, `7` next, `8` changes playback mode, Up/Down scroll
   lyrics, Esc returns
 - Info pages: Up/Down scroll, Esc returns
+- Help: `Fn+H` on CardputerZero (`H` on desktop) opens the help page; Esc or `Fn+H` closes it
 
 On CardputerZero, `F`/`X`/`Z`/`C` are accepted as Up/Down/Left/Right. The device build reads
 `MUSIC_KEYBOARD_DEVICE`, `APPLAUNCH_LINUX_KEYBOARD_DEVICE`, or the default CardputerZero keypad event node without

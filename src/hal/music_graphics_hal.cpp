@@ -226,6 +226,10 @@ void MusicGraphicsHal::handleDesktopKey(lv_indev_t* indev)
         case 'E':
             mapped = music_key::Next;
             break;
+        case 'h':
+        case 'H':
+            mapped = music_key::Help;
+            break;
         case '4':
             mapped = music_key::Key4;
             break;

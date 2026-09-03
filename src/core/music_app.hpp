@@ -47,9 +47,12 @@ private:
     AlbumListView _album_list_view;
     PlaybackView _playback_view;
     InfoPageView _info_page_view;
+    InfoPageViewModel _help_info_page_view_model;
+    InfoPageView _help_info_page_view;
     rendering::ArtworkPaletteCache _artwork_palette_cache;
     std::filesystem::path _playback_theme_path;
     PageId _info_return_page = PageId::CoverFlow;
+    bool _help_active = false;
     bool _started = false;
     bool _quit_requested = false;
 
@@ -59,6 +62,8 @@ private:
     void updatePlaybackTheme();
     void showInfoPage(InfoPageContent content, ui::PageTheme theme, PageId return_page);
     void returnFromInfo();
+    void showHelpPage();
+    void closeHelpPage();
     void returnFromPlayback();
     void returnToCoverFlow();
 };
