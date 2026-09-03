@@ -258,6 +258,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME music_playback_queue COMMAND music_playback_queue_tests)
 
+    add_executable(music_playback_volume_tests
+        tests/playback_volume_test.cpp
+    )
+    target_include_directories(music_playback_volume_tests PRIVATE
+        "${MUSIC_SRC_DIR}"
+    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(music_playback_volume_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    add_test(NAME music_playback_volume COMMAND music_playback_volume_tests)
+
     add_executable(music_lyrics_tests
         tests/music_lyrics_test.cpp
         src/core/music_lyrics.cpp

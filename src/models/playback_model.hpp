@@ -55,6 +55,7 @@ public:
     bool previous();
     bool next();
     void cycleMode();
+    void adjustVolume(int delta_percent);
     void pause();
     void stop();
     void update(float delta_seconds);

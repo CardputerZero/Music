@@ -81,6 +81,10 @@ Key controls:
   lyrics, Esc returns
 - Info pages: Up/Down scroll, Esc returns
 
+On CardputerZero v5, the media keys control playback from any page: volume down/up and previous/next track.
+The application handles the corresponding Linux media key events directly; other hardware revisions may expose
+different media key mappings.
+
 On CardputerZero, `F`/`X`/`Z`/`C` are accepted as Up/Down/Left/Right. The device build reads
 `MUSIC_KEYBOARD_DEVICE`, `APPLAUNCH_LINUX_KEYBOARD_DEVICE`, or the default CardputerZero keypad event node without
 grabbing it from APPLaunch.

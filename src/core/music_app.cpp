@@ -15,6 +15,8 @@
 namespace music {
 namespace {
 
+constexpr int kVolumeShortcutDeltaPercent = 10;
+
 std::string albumInfoBody(const Album& album, const Track* representative_track)
 {
     std::ostringstream body;
@@ -101,6 +103,25 @@ void MusicApp::stop()
 
 void MusicApp::onKey(std::uint32_t key, bool pressed)
 {
+    if (pressed) {
+        if (key == music_key::VolumeDown) {
+            _playback.adjustVolume(-kVolumeShortcutDeltaPercent);
+            return;
+        }
+        if (key == music_key::VolumeUp) {
+            _playback.adjustVolume(kVolumeShortcutDeltaPercent);
+            return;
+        }
+        if (key == music_key::Next) {
+            _playback.next();
+            return;
+        }
+        if (key == music_key::Previous) {
+            _playback.previous();
+            return;
+        }
+    }
+
     switch (_router.page()) {
         case PageId::CoverFlow:
             if (pressed && key == music_key::Escape) {

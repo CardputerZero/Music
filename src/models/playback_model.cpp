@@ -1,6 +1,7 @@
 #include "models/playback_model.hpp"
 
 #include "models/playback_queue.hpp"
+#include "models/playback_volume.hpp"
 
 #include <miniaudio.h>
 #include <spdlog/spdlog.h>
@@ -192,6 +193,17 @@ public:
         markRevised();
     }
 
+    void adjustVolume(int delta_percent)
+    {
+        if (delta_percent == 0) {
+            return;
+        }
+        const float current = _volume.load(std::memory_order_acquire);
+        const int current_percent = static_cast<int>(std::lround(std::clamp(current, 0.0f, 1.0f) * 100.0f));
+        const int next_percent = playback_detail::adjustVolumePercent(current_percent, delta_percent);
+        _volume.store(static_cast<float>(next_percent) / 100.0f, std::memory_order_release);
+    }
+
     void pause()
     {
         if (_snapshot.state != PlaybackState::Playing) {
@@ -245,6 +257,7 @@ private:
     std::mutex _decoder_mutex;
     std::atomic<bool> _playing{false};
     std::atomic<bool> _finished{false};
+    std::atomic<float> _volume{1.0f};
     ma_uint64 _total_frames = 0;
     std::array<std::atomic<float>, kWaveformSamples> _waveform;
     std::atomic<std::uint64_t> _waveform_cursor{0};
@@ -457,6 +470,13 @@ private:
             self->_waveform[static_cast<std::size_t>(cursor % kWaveformSamples)].store(mono, std::memory_order_relaxed);
             ++cursor;
         }
+        const float gain = self->_volume.load(std::memory_order_acquire);
+        if (gain != 1.0f) {
+            const std::size_t sample_count = static_cast<std::size_t>(frames_read) * kPlaybackChannels;
+            for (std::size_t sample = 0; sample < sample_count; ++sample) {
+                out[sample] *= gain;
+            }
+        }
         self->_waveform_cursor.store(cursor, std::memory_order_release);
 
         if (frames_read < frame_count) {
@@ -483,6 +503,8 @@ bool PlaybackModel::previous() { return _impl->previous(); }
 bool PlaybackModel::next() { return _impl->next(); }
 
 void PlaybackModel::cycleMode() { _impl->cycleMode(); }
+
+void PlaybackModel::adjustVolume(int delta_percent) { _impl->adjustVolume(delta_percent); }
 
 void PlaybackModel::pause() { _impl->pause(); }
 
