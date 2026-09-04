@@ -30,6 +30,7 @@ System build requirements:
 - CMake 3.16 or newer, a C/C++ compiler, Git, and Python 3
 - SDL2 development files for the desktop build
 - zlib development files
+- PulseAudio runtime (`libpulse0` and `pactl`) for CardputerZero playback and volume shortcuts
 - The GNU AArch64 toolchain, `dpkg-deb`, and an ARM64 zlib library when cross-packaging from x86 Linux
 
 Project dependencies include LVGL, libjpeg-turbo, spdlog, Smooth UI Toolkit, miniaudio, TagLib, SQLite, and
@@ -81,6 +82,11 @@ Key controls:
   lyrics, Esc returns
 - Info pages: Up/Down scroll, Esc returns
 - Help: `Fn+H` on CardputerZero (`H` on desktop) opens the help page; Esc or `Fn+H` closes it
+
+On CardputerZero, `Fn+S` and `Fn+D` lower and raise the system audio volume in 5% steps. The package includes
+`pactl` through its `pulseaudio-utils` runtime dependency.
+
+On the SDL desktop build, `S` and `D` simulate volume down/up in the app log without changing the host system volume.
 
 On CardputerZero, `F`/`X`/`Z`/`C` are accepted as Up/Down/Left/Right. The device build reads
 `MUSIC_KEYBOARD_DEVICE`, `APPLAUNCH_LINUX_KEYBOARD_DEVICE`, or the default CardputerZero keypad event node without

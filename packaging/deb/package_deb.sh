@@ -47,6 +47,7 @@ CMAKE_ARGS=(
     -B "${BUILD_DIR}"
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
     -DMUSIC_USE_SDL=OFF
+    -DMUSIC_USE_PULSEAUDIO=ON
     -DBUILD_TESTING=OFF
     -DMUSIC_BIN_NAME="${BIN_NAME}"
     -DMUSIC_OUTPUT_DIR="${BUILD_DIR}/dist"
@@ -68,6 +69,10 @@ done
 "${CMAKE_BIN}" "${CMAKE_ARGS[@]}"
 if [[ "$(read_cmake_cache_value MUSIC_USE_SDL)" != "OFF" ]]; then
     echo "Invalid package build: MUSIC_USE_SDL must be OFF." >&2
+    exit 1
+fi
+if [[ "$(read_cmake_cache_value MUSIC_USE_PULSEAUDIO)" != "ON" ]]; then
+    echo "Invalid package build: MUSIC_USE_PULSEAUDIO must be ON." >&2
     exit 1
 fi
 PACKAGE_VERSION="$(read_cmake_cache_value CMAKE_PROJECT_VERSION)"
@@ -210,7 +215,7 @@ Section: sound
 Priority: optional
 Architecture: ${DEB_ARCH}
 Maintainer: ${MAINTAINER}
-Depends: libc6, libstdc++6, libgcc-s1, zlib1g
+Depends: libc6, libstdc++6, libgcc-s1, zlib1g, libpulse0, pulseaudio-utils
 Installed-Size: ${INSTALLED_SIZE}
 Description: Local music library for M5CardputerZero APPLaunch
  Local audio library index and 3D Cover Flow browser.

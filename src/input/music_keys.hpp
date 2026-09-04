@@ -23,6 +23,10 @@ constexpr std::uint32_t Previous = 0x1000e;
 constexpr std::uint32_t Next = 0x1000f;
 // The keyboard firmware emits KEY_HELP for the Fn + H shortcut.
 constexpr std::uint32_t Help = 0x10010;
+// The keyboard firmware emits these as Linux consumer/media key events for
+// the Fn + S/D volume shortcuts.
+constexpr std::uint32_t VolumeDown = 0x10011;
+constexpr std::uint32_t VolumeUp = 0x10012;
 constexpr std::uint32_t NowPlaying = Key8;
 
 }  // namespace music::music_key

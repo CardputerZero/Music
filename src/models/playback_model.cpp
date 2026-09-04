@@ -318,11 +318,24 @@ private:
             return true;
         }
         if (!_context_initialized) {
+#if MUSIC_USE_PULSEAUDIO
+            ma_backend backends[] = {ma_backend_pulseaudio};
+            const ma_result context_result = ma_context_init(backends, 1, nullptr, &_context);
+            if (context_result != MA_SUCCESS) {
+                setError(playbackError("PulseAudio context", context_result));
+                spdlog::error("Playback: PulseAudio context initialization failed: {} {}",
+                              static_cast<int>(context_result), maResultName(context_result));
+                return false;
+            }
+            spdlog::info("Playback: miniaudio context initialized with PulseAudio backend");
+#else
             const ma_result context_result = ma_context_init(nullptr, 0, nullptr, &_context);
             if (context_result != MA_SUCCESS) {
                 setError(playbackError("Audio context", context_result));
                 return false;
             }
+            spdlog::info("Playback: miniaudio context initialized with default backend");
+#endif
             _context_initialized = true;
         }
 

@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(M5CardputerZeroMusic VERSION 0.1.4 LANGUAGES C CXX ASM)
+project(M5CardputerZeroMusic VERSION 0.1.5 LANGUAGES C CXX ASM)
 
 option(MUSIC_USE_SDL "Use LVGL's SDL backend for desktop testing" ON)
+if(NOT DEFINED MUSIC_USE_PULSEAUDIO)
+    if(MUSIC_USE_SDL)
+        set(MUSIC_USE_PULSEAUDIO OFF)
+    else()
+        set(MUSIC_USE_PULSEAUDIO ON)
+    endif()
+endif()
 option(BUILD_TESTING "Build Music tests" OFF)
 set(MUSIC_BIN_NAME "M5CardputerZero-Music" CACHE STRING "Output executable name")
 if(MUSIC_USE_SDL)
@@ -225,6 +232,7 @@ target_include_directories(${MUSIC_BIN_NAME} PRIVATE
 )
 target_compile_definitions(${MUSIC_BIN_NAME} PRIVATE
     MUSIC_USE_SDL=$<IF:$<BOOL:${MUSIC_USE_SDL}>,1,0>
+    MUSIC_USE_PULSEAUDIO=$<IF:$<BOOL:${MUSIC_USE_PULSEAUDIO}>,1,0>
     MUSIC_ASSETS_PATH="$<IF:$<BOOL:${MUSIC_USE_SDL}>,${MUSIC_ROOT}/assets,/usr/share/Music>"
 )
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -257,6 +265,23 @@ if(BUILD_TESTING)
         target_compile_options(music_playback_queue_tests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
     add_test(NAME music_playback_queue COMMAND music_playback_queue_tests)
+
+    add_executable(music_system_volume_tests
+        tests/system_volume_model_test.cpp
+        src/models/system_volume_model.cpp
+    )
+    target_include_directories(music_system_volume_tests PRIVATE
+        "${MUSIC_SRC_DIR}"
+    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(music_system_volume_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    target_link_libraries(music_system_volume_tests PRIVATE
+        spdlog::spdlog
+        Threads::Threads
+        ${MUSIC_SYSTEM_LIBS}
+    )
+    add_test(NAME music_system_volume COMMAND music_system_volume_tests)
 
     add_executable(music_lyrics_tests
         tests/music_lyrics_test.cpp

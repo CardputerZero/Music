@@ -226,6 +226,16 @@ void MusicGraphicsHal::handleDesktopKey(lv_indev_t* indev)
         case 'E':
             mapped = music_key::Next;
             break;
+        // SDL has no Fn layer, so use S/D as desktop aliases for the
+        // CardputerZero Fn+S/Fn+D volume shortcuts.
+        case 's':
+        case 'S':
+            mapped = music_key::VolumeDown;
+            break;
+        case 'd':
+        case 'D':
+            mapped = music_key::VolumeUp;
+            break;
         case 'h':
         case 'H':
             mapped = music_key::Help;

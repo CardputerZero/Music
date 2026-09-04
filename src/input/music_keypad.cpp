@@ -41,7 +41,8 @@ bool hasMusicKeys(int fd)
            testBit(key_bits, KEY_RIGHT) || testBit(key_bits, KEY_F) || testBit(key_bits, KEY_X) ||
            testBit(key_bits, KEY_Z) || testBit(key_bits, KEY_C) || testBit(key_bits, KEY_SPACE) ||
            testBit(key_bits, KEY_PLAYPAUSE) || testBit(key_bits, KEY_PREVIOUSSONG) || testBit(key_bits, KEY_NEXTSONG) ||
-           testBit(key_bits, KEY_REWIND) || testBit(key_bits, KEY_FASTFORWARD) || testBit(key_bits, KEY_HELP);
+           testBit(key_bits, KEY_REWIND) || testBit(key_bits, KEY_FASTFORWARD) || testBit(key_bits, KEY_HELP) ||
+           testBit(key_bits, KEY_VOLUMEDOWN) || testBit(key_bits, KEY_VOLUMEUP);
 }
 
 }  // namespace
@@ -135,7 +136,7 @@ void MusicKeypad::setKeyCallback(KeyCallback callback) { _key_callback = std::mo
 void MusicKeypad::pushLinuxKey(std::uint16_t code, std::int32_t value)
 {
 #if !MUSIC_USE_SDL && defined(__linux__)
-    if (!_key_callback || (value != 0 && value != 1)) {
+    if (!_key_callback || (value != 0 && value != 1 && value != 2)) {
         return;
     }
 
@@ -181,6 +182,12 @@ void MusicKeypad::pushLinuxKey(std::uint16_t code, std::int32_t value)
         case KEY_HELP:
             key = music_key::Help;
             break;
+        case KEY_VOLUMEDOWN:
+            key = music_key::VolumeDown;
+            break;
+        case KEY_VOLUMEUP:
+            key = music_key::VolumeUp;
+            break;
         case KEY_4:
         case KEY_KP4:
             key = music_key::Key4;
@@ -204,7 +211,12 @@ void MusicKeypad::pushLinuxKey(std::uint16_t code, std::int32_t value)
         default:
             return;
     }
-    _key_callback(key, value == 1);
+    // Linux value 2 is a key-repeat event. Volume controls use repeats for
+    // continuous adjustment; all other mapped shortcuts are edge-triggered.
+    if (value == 2 && key != music_key::VolumeDown && key != music_key::VolumeUp) {
+        return;
+    }
+    _key_callback(key, value != 0);
 #else
     (void)code;
     (void)value;

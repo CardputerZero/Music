@@ -15,6 +15,8 @@
 namespace music {
 namespace {
 
+constexpr int kVolumeShortcutDeltaPercent = 5;
+
 std::string albumInfoBody(const Album& album, const Track* representative_track)
 {
     std::ostringstream body;
@@ -66,6 +68,7 @@ void MusicApp::start()
     }
     _library.start();
     initFontAssets();
+    _volume_hud.start(lv_layer_top());
     _cover_flow_view_model.onEnter();
     _cover_flow_view.onEnter(lv_screen_active());
     _help_active = false;
@@ -97,6 +100,7 @@ void MusicApp::stop()
             _info_page_view_model.onExit();
             break;
     }
+    _volume_hud.shutdown();
     _playback.stop();
     _artwork_palette_cache.clear();
     shutdownFontAssets();
@@ -106,6 +110,28 @@ void MusicApp::stop()
 
 void MusicApp::onKey(std::uint32_t key, bool pressed)
 {
+    if (key == music_key::VolumeDown || key == music_key::VolumeUp) {
+        if (pressed) {
+            const int delta = key == music_key::VolumeUp ? kVolumeShortcutDeltaPercent : -kVolumeShortcutDeltaPercent;
+#if MUSIC_USE_SDL
+            // SDL has no CardputerZero Fn layer. Keep desktop testing side-effect free:
+            // simulate the volume state instead of changing the host system volume.
+            _desktop_volume_percent = SystemVolumeModel::clampPercent(_desktop_volume_percent + delta);
+            spdlog::info("MusicApp: SDL volume shortcut simulated (volume={}%, delta={}%)", _desktop_volume_percent,
+                         delta);
+            _volume_hud.showVolume(_desktop_volume_percent);
+#else
+            const SystemVolumeResult result = _system_volume.adjustVolume(delta);
+            if (!result.success) {
+                spdlog::warn("MusicApp: system volume shortcut failed (delta={}%)", delta);
+            } else {
+                _volume_hud.showVolume(result.state.percent);
+            }
+#endif
+        }
+        return;
+    }
+
     if (_help_active) {
         if (pressed && (key == music_key::Help || key == music_key::Escape)) {
             closeHelpPage();
@@ -178,6 +204,7 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
 void MusicApp::update(float delta_seconds)
 {
     _playback.update(delta_seconds);
+    _volume_hud.update(delta_seconds);
     if (_help_active) {
         _help_info_page_view.update(delta_seconds);
         return;
@@ -314,7 +341,12 @@ void MusicApp::showHelpPage()
         "Help",
         "Listen to music in the current user's \"music\" directory, with album artwork and lyrics.\n\n"
         "Sample music is hidden when the \"music\" directory contains music.\n\n"
-        "Number keys 4-8: operations",
+        "Number keys 4-8: operations\n"
+#if MUSIC_USE_SDL
+        "S / D: simulate volume down / up",
+#else
+        "Fn+S / Fn+D: volume down / up",
+#endif
     });
     _help_info_page_view.setTheme(ui::defaultPageTheme());
     _help_info_page_view_model.onEnter();

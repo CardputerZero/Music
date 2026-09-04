@@ -4,6 +4,7 @@
 #include "core/music_router.hpp"
 #include "models/music_library_model.hpp"
 #include "models/playback_model.hpp"
+#include "models/system_volume_model.hpp"
 #include "rendering/artwork_palette.hpp"
 #include "view_models/album_list_view_model.hpp"
 #include "view_models/cover_flow_view_model.hpp"
@@ -12,6 +13,7 @@
 #include "views/album_list_view.hpp"
 #include "views/cover_flow_view.hpp"
 #include "views/info_page_view.hpp"
+#include "views/music_volume_hud.hpp"
 #include "views/playback_view.hpp"
 
 #include <cstdint>
@@ -39,6 +41,7 @@ private:
     MusicRouter _router;
     MusicLibraryModel _library;
     PlaybackModel _playback;
+    SystemVolumeModel _system_volume;
     CoverFlowViewModel _cover_flow_view_model;
     AlbumListViewModel _album_list_view_model;
     PlaybackViewModel _playback_view_model;
@@ -49,12 +52,14 @@ private:
     InfoPageView _info_page_view;
     InfoPageViewModel _help_info_page_view_model;
     InfoPageView _help_info_page_view;
+    MusicVolumeHud _volume_hud;
     rendering::ArtworkPaletteCache _artwork_palette_cache;
     std::filesystem::path _playback_theme_path;
     PageId _info_return_page = PageId::CoverFlow;
     bool _help_active = false;
     bool _started = false;
     bool _quit_requested = false;
+    int _desktop_volume_percent = 50;
 
     void openSelectedAlbum();
     void openSelectedAlbumInfo();
