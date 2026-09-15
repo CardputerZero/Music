@@ -83,10 +83,12 @@ Key controls:
 - Info pages: Up/Down scroll, Esc returns
 - Help: `Fn+H` on CardputerZero (`H` on desktop) opens the help page; Esc or `Fn+H` closes it
 
-On CardputerZero, `Fn+S` and `Fn+D` lower and raise the system audio volume in 5% steps. The package includes
-`pactl` through its `pulseaudio-utils` runtime dependency.
+On CardputerZero, the media shortcuts work from every page: `Fn+Q` plays or pauses, `Fn+W` selects the previous
+track, and `Fn+E` selects the next track. `Fn+A` toggles mute, while `Fn+S` and `Fn+D` lower and raise the system
+audio volume in 5% steps. The package includes `pactl` through its `pulseaudio-utils` runtime dependency.
 
-On the SDL desktop build, `S` and `D` simulate volume down/up in the app log without changing the host system volume.
+On the SDL desktop build, `Q`/`W`/`E` provide the global playback shortcuts. `A`/`S`/`D` simulate mute and volume
+down/up in the app without changing the host system volume.
 
 On CardputerZero, `F`/`X`/`Z`/`C` are accepted as Up/Down/Left/Right. The device build reads
 `MUSIC_KEYBOARD_DEVICE`, `APPLAUNCH_LINUX_KEYBOARD_DEVICE`, or the default CardputerZero keypad event node without

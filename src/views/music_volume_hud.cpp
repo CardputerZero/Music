@@ -69,12 +69,23 @@ void MusicVolumeHud::shutdown()
 
 void MusicVolumeHud::showVolume(int percent)
 {
+    const int clamped = std::clamp(percent, 0, 100);
+    show(clamped == 0 ? LV_SYMBOL_MUTE : LV_SYMBOL_VOLUME_MAX, clamped);
+}
+
+void MusicVolumeHud::showMute(bool muted, int percent)
+{
+    show(muted ? LV_SYMBOL_MUTE : LV_SYMBOL_VOLUME_MAX, muted ? 0 : std::clamp(percent, 0, 100));
+}
+
+void MusicVolumeHud::show(const char* icon, int percent)
+{
     if (!_root || !_root->isValid()) {
         return;
     }
 
     const int clamped = std::clamp(percent, 0, 100);
-    _icon->setText(clamped == 0 ? LV_SYMBOL_MUTE : LV_SYMBOL_VOLUME_MAX);
+    _icon->setText(icon);
     const std::size_t active =
         clamped == 0 ? 0 : static_cast<std::size_t>((clamped * static_cast<int>(kSegmentCount) + 99) / 100);
     for (std::size_t index = 0; index < _segments.size(); ++index) {

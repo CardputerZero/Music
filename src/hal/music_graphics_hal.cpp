@@ -4,8 +4,8 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <utility>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 #if MUSIC_USE_SDL
 #include "src/drivers/sdl/lv_sdl_keyboard.h"
@@ -226,8 +226,12 @@ void MusicGraphicsHal::handleDesktopKey(lv_indev_t* indev)
         case 'E':
             mapped = music_key::Next;
             break;
-        // SDL has no Fn layer, so use S/D as desktop aliases for the
-        // CardputerZero Fn+S/Fn+D volume shortcuts.
+        // SDL has no Fn layer, so use A/S/D as desktop aliases for the
+        // CardputerZero Fn+A/Fn+S/Fn+D audio shortcuts.
+        case 'a':
+        case 'A':
+            mapped = music_key::Mute;
+            break;
         case 's':
         case 'S':
             mapped = music_key::VolumeDown;

@@ -24,6 +24,7 @@ public:
     void start(lv_obj_t* parent);
     void shutdown();
     void showVolume(int percent);
+    void showMute(bool muted, int percent);
     void update(float delta_seconds);
 
 private:
@@ -43,6 +44,7 @@ private:
     bool _waiting_to_hide = false;
 
     bool create(lv_obj_t* parent);
+    void show(const char* icon, int percent);
     void applyOpacity();
     void hide();
 };

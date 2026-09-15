@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(M5CardputerZeroMusic VERSION 0.1.5 LANGUAGES C CXX ASM)
+project(M5CardputerZeroMusic VERSION 0.1.6 LANGUAGES C CXX ASM)
 
 option(MUSIC_USE_SDL "Use LVGL's SDL backend for desktop testing" ON)
 if(NOT DEFINED MUSIC_USE_PULSEAUDIO)

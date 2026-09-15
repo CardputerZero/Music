@@ -60,7 +60,10 @@ private:
     bool _started = false;
     bool _quit_requested = false;
     int _desktop_volume_percent = 50;
+    bool _desktop_volume_muted = false;
+    std::uint32_t _pressed_media_key = 0;
 
+    void activateMediaShortcut(std::uint32_t key);
     void openSelectedAlbum();
     void openSelectedAlbumInfo();
     void openPlaybackPage();

@@ -17,6 +17,12 @@ namespace {
 
 constexpr int kVolumeShortcutDeltaPercent = 5;
 
+bool isMediaShortcut(std::uint32_t key)
+{
+    return key == music_key::Mute || key == music_key::PlayPause || key == music_key::Previous ||
+           key == music_key::Next;
+}
+
 std::string albumInfoBody(const Album& album, const Track* representative_track)
 {
     std::ostringstream body;
@@ -72,6 +78,7 @@ void MusicApp::start()
     _cover_flow_view_model.onEnter();
     _cover_flow_view.onEnter(lv_screen_active());
     _help_active = false;
+    _pressed_media_key = 0;
 }
 
 void MusicApp::stop()
@@ -117,6 +124,7 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
             // SDL has no CardputerZero Fn layer. Keep desktop testing side-effect free:
             // simulate the volume state instead of changing the host system volume.
             _desktop_volume_percent = SystemVolumeModel::clampPercent(_desktop_volume_percent + delta);
+            _desktop_volume_muted = false;
             spdlog::info("MusicApp: SDL volume shortcut simulated (volume={}%, delta={}%)", _desktop_volume_percent,
                          delta);
             _volume_hud.showVolume(_desktop_volume_percent);
@@ -128,6 +136,18 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
                 _volume_hud.showVolume(result.state.percent);
             }
 #endif
+        }
+        return;
+    }
+
+    // Media shortcuts remain active while browsing albums, reading Info/Help,
+    // or viewing the playback page. Trigger on release to keep toggles edge-based.
+    if (isMediaShortcut(key)) {
+        if (pressed) {
+            _pressed_media_key = key;
+        } else if (_pressed_media_key == key) {
+            _pressed_media_key = 0;
+            activateMediaShortcut(key);
         }
         return;
     }
@@ -198,6 +218,30 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
                 }
             }
             break;
+    }
+}
+
+void MusicApp::activateMediaShortcut(std::uint32_t key)
+{
+    if (key == music_key::Previous) {
+        (void)_playback.previous();
+    } else if (key == music_key::PlayPause) {
+        (void)_playback.toggleCurrent();
+    } else if (key == music_key::Next) {
+        (void)_playback.next();
+    } else if (key == music_key::Mute) {
+#if MUSIC_USE_SDL
+        _desktop_volume_muted = !_desktop_volume_muted;
+        spdlog::info("MusicApp: SDL mute shortcut simulated ({})", _desktop_volume_muted ? "muted" : "sound on");
+        _volume_hud.showMute(_desktop_volume_muted, _desktop_volume_percent);
+#else
+        const SystemVolumeResult result = _system_volume.toggleMute();
+        if (!result.success) {
+            spdlog::warn("MusicApp: system mute shortcut failed");
+        } else {
+            _volume_hud.showMute(result.state.muted, result.state.percent);
+        }
+#endif
     }
 }
 
@@ -343,9 +387,11 @@ void MusicApp::showHelpPage()
         "Sample music is hidden when the \"music\" directory contains music.\n\n"
         "Number keys 4-8: operations\n"
 #if MUSIC_USE_SDL
-        "S / D: simulate volume down / up",
+        "Q / W / E: play-pause / previous / next\n"
+        "A / S / D: simulate mute / volume down / up",
 #else
-        "Fn+S / Fn+D: volume down / up",
+        "Fn+Q / Fn+W / Fn+E: play-pause / previous / next\n"
+        "Fn+A / Fn+S / Fn+D: mute / volume down / up",
 #endif
     });
     _help_info_page_view.setTheme(ui::defaultPageTheme());
