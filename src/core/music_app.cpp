@@ -12,10 +12,25 @@
 #include <sstream>
 #include <utility>
 
+#if MUSIC_USE_SDL
+#include LV_SDL_INCLUDE_PATH
+#endif
+
 namespace music {
 namespace {
 
 constexpr int kVolumeShortcutDeltaPercent = 5;
+constexpr std::uint32_t kEscLongPressMs = 700;
+
+#if MUSIC_USE_SDL
+bool sdlKeyHeld(SDL_Scancode scancode)
+{
+    int key_count = 0;
+    const Uint8* state = SDL_GetKeyboardState(&key_count);
+    const int index = static_cast<int>(scancode);
+    return state && index >= 0 && index < key_count && state[index] != 0;
+}
+#endif
 
 bool isMediaShortcut(std::uint32_t key)
 {
@@ -74,11 +89,16 @@ void MusicApp::start()
     }
     _library.start();
     initFontAssets();
+    createExitHint();
     _volume_hud.start(lv_layer_top());
     _cover_flow_view_model.onEnter();
     _cover_flow_view.onEnter(lv_screen_active());
     _help_active = false;
     _pressed_media_key = 0;
+    _esc_pressed = false;
+    _esc_long_consumed = false;
+    _esc_exit_armed = false;
+    _esc_pressed_at = 0;
 }
 
 void MusicApp::stop()
@@ -89,6 +109,15 @@ void MusicApp::stop()
     if (_help_active) {
         closeHelpPage();
     }
+    hideExitHint();
+    if (_exit_hint && lv_obj_is_valid(_exit_hint)) {
+        lv_obj_delete(_exit_hint);
+    }
+    _exit_hint = nullptr;
+    _esc_pressed = false;
+    _esc_long_consumed = false;
+    _esc_exit_armed = false;
+    _esc_pressed_at = 0;
     switch (_router.page()) {
         case PageId::CoverFlow:
             _cover_flow_view.onExit();
@@ -117,6 +146,32 @@ void MusicApp::stop()
 
 void MusicApp::onKey(std::uint32_t key, bool pressed)
 {
+    if (key == music_key::Escape) {
+        if (pressed) {
+            if (_esc_pressed) {
+                return;
+            }
+            _esc_pressed = true;
+            _esc_pressed_at = lv_tick_get();
+            _esc_long_consumed = false;
+            _esc_exit_armed = !_help_active && _router.page() == PageId::CoverFlow;
+            if (_esc_exit_armed) {
+                showExitHint();
+            }
+        } else if (_esc_pressed) {
+#if MUSIC_USE_SDL
+            // LVGL's SDL keyboard driver synthesizes a release immediately
+            // after the press. Keep the physical hold armed until SDL reports
+            // that Escape is actually no longer down.
+            if (sdlKeyHeld(SDL_SCANCODE_ESCAPE)) {
+                return;
+            }
+#endif
+            releaseEscPress();
+        }
+        return;
+    }
+
     if (key == music_key::VolumeDown || key == music_key::VolumeUp) {
         if (pressed) {
             const int delta = key == music_key::VolumeUp ? kVolumeShortcutDeltaPercent : -kVolumeShortcutDeltaPercent;
@@ -171,18 +226,14 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
 
     switch (_router.page()) {
         case PageId::CoverFlow:
-            if (pressed && key == music_key::Escape) {
-                _quit_requested = true;
-            } else if (pressed && key == music_key::Enter) {
+            if (pressed && key == music_key::Enter) {
                 openSelectedAlbum();
             } else {
                 _cover_flow_view_model.onKey(key, pressed);
             }
             break;
         case PageId::AlbumList:
-            if (pressed && key == music_key::Escape) {
-                returnToCoverFlow();
-            } else if (pressed && key == music_key::NowPlaying) {
+            if (pressed && key == music_key::NowPlaying) {
                 openPlaybackPage();
             } else {
                 _album_list_view_model.onKey(key, pressed);
@@ -192,9 +243,7 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
             }
             break;
         case PageId::Playback:
-            if (pressed && key == music_key::Escape) {
-                returnFromPlayback();
-            } else if (pressed && key == music_key::Up) {
+            if (pressed && key == music_key::Up) {
                 _playback_view.scrollLyricsBy(-28);
             } else if (pressed && key == music_key::Down) {
                 _playback_view.scrollLyricsBy(28);
@@ -205,8 +254,6 @@ void MusicApp::onKey(std::uint32_t key, bool pressed)
         case PageId::Info:
             if (_info_page_view_model.magicActive()) {
                 _info_page_view_model.onKey(key, pressed);
-            } else if (pressed && key == music_key::Escape) {
-                returnFromInfo();
             } else {
                 _info_page_view_model.onKey(key, pressed);
                 if (!_info_page_view_model.magicActive()) {
@@ -249,6 +296,23 @@ void MusicApp::update(float delta_seconds)
 {
     _playback.update(delta_seconds);
     _volume_hud.update(delta_seconds);
+
+    if (_esc_exit_armed && (_router.page() != PageId::CoverFlow || _help_active)) {
+        _esc_exit_armed = false;
+        hideExitHint();
+    }
+    if (_esc_pressed && !_esc_long_consumed && _esc_exit_armed && lv_tick_elaps(_esc_pressed_at) >= kEscLongPressMs) {
+        _esc_long_consumed = true;
+        hideExitHint();
+        spdlog::info("MusicApp: quit requested after holding Esc for {} ms", kEscLongPressMs);
+        _quit_requested = true;
+    }
+#if MUSIC_USE_SDL
+    if (_esc_pressed && !sdlKeyHeld(SDL_SCANCODE_ESCAPE)) {
+        releaseEscPress();
+    }
+#endif
+
     if (_help_active) {
         _help_info_page_view.update(delta_seconds);
         return;
@@ -408,6 +472,96 @@ void MusicApp::closeHelpPage()
     _help_info_page_view.onExit();
     _help_info_page_view_model.onExit();
     _help_active = false;
+}
+
+void MusicApp::createExitHint()
+{
+    if (_exit_hint) {
+        return;
+    }
+
+    _exit_hint = lv_label_create(lv_layer_top());
+    if (!_exit_hint) {
+        return;
+    }
+
+    lv_label_set_text(_exit_hint, "Hold ESC to exit");
+    lv_obj_set_size(_exit_hint, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_style_text_font(_exit_hint, font(FontFamily::Sans, FontSize::Px12), LV_PART_MAIN);
+    lv_obj_set_style_text_color(_exit_hint, lv_color_hex(0xFED40D), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(_exit_hint, lv_color_hex(0x474747), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(_exit_hint, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(_exit_hint, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(_exit_hint, 6, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(_exit_hint, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(_exit_hint, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(_exit_hint, 5, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(_exit_hint, 5, LV_PART_MAIN);
+    lv_obj_set_style_text_align(_exit_hint, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_align(_exit_hint, LV_ALIGN_BOTTOM_MID, 0, -38);
+    lv_obj_clear_flag(_exit_hint, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(_exit_hint, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(_exit_hint, LV_OBJ_FLAG_HIDDEN);
+}
+
+void MusicApp::showExitHint()
+{
+    if (!_exit_hint || !lv_obj_is_valid(_exit_hint)) {
+        return;
+    }
+    lv_obj_remove_flag(_exit_hint, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(_exit_hint);
+}
+
+void MusicApp::hideExitHint()
+{
+    if (_exit_hint && lv_obj_is_valid(_exit_hint)) {
+        lv_obj_add_flag(_exit_hint, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void MusicApp::releaseEscPress()
+{
+    if (!_esc_pressed) {
+        return;
+    }
+
+    if (!_esc_long_consumed) {
+        handleEscapeNavigation();
+    }
+    hideExitHint();
+    _esc_pressed = false;
+    _esc_long_consumed = false;
+    _esc_exit_armed = false;
+    _esc_pressed_at = 0;
+}
+
+void MusicApp::handleEscapeNavigation()
+{
+    if (_help_active) {
+        closeHelpPage();
+        return;
+    }
+
+    switch (_router.page()) {
+        case PageId::CoverFlow:
+            // The cover flow is the app root. A short Escape press only shows
+            // the hint; leaving the app requires holding it.
+            break;
+        case PageId::AlbumList:
+            returnToCoverFlow();
+            break;
+        case PageId::Playback:
+            returnFromPlayback();
+            break;
+        case PageId::Info:
+            if (_info_page_view_model.magicActive()) {
+                _info_page_view_model.onKey(music_key::Escape, true);
+            } else {
+                returnFromInfo();
+            }
+            break;
+    }
 }
 
 void MusicApp::returnFromInfo()

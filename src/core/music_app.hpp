@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <filesystem>
 
+#include <lvgl.h>
+
 namespace music {
 
 class MusicApp {
@@ -59,6 +61,11 @@ private:
     bool _help_active = false;
     bool _started = false;
     bool _quit_requested = false;
+    lv_obj_t* _exit_hint = nullptr;
+    bool _esc_pressed = false;
+    bool _esc_long_consumed = false;
+    bool _esc_exit_armed = false;
+    std::uint32_t _esc_pressed_at = 0;
     int _desktop_volume_percent = 50;
     bool _desktop_volume_muted = false;
     std::uint32_t _pressed_media_key = 0;
@@ -72,6 +79,11 @@ private:
     void returnFromInfo();
     void showHelpPage();
     void closeHelpPage();
+    void createExitHint();
+    void showExitHint();
+    void hideExitHint();
+    void releaseEscPress();
+    void handleEscapeNavigation();
     void returnFromPlayback();
     void returnToCoverFlow();
 };
