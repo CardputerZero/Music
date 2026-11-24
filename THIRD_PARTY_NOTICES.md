@@ -6,6 +6,10 @@
 - spdlog: MIT license
 - TagLib: LGPL-2.1-or-later or MPL-1.1
 - SQLite and SQLiteCpp: SQLite is public domain; SQLiteCpp is MIT licensed
+- Apple Lossless (ALAC): `src/audio/alac_decoder.cpp` is a bounds-checked reimplementation of the decoder
+  in Apple's ALAC reference codec (https://github.com/macosforge/alac), Copyright (c) 2011 Apple Inc.,
+  Apache License 2.0. Changes: rewritten in C++17 with validation of every length read from the file;
+  encoder, 32-bit output and CAF support omitted.
 - Noto Sans SC SemiBold: SIL Open Font License 1.1
 - Noto Sans JP SemiBold: SIL Open Font License 1.1
 - Bundled `Piano Classics` examples:

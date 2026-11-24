@@ -68,7 +68,9 @@ jobs:
             music_lyrics_tests \
             music_cover_rasterizer_tests \
             music_cover_image_loader_tests \
-            music_library_model_tests
+            music_library_model_tests \
+            music_decoder_tests \
+            music_playback_model_tests
           ctest --test-dir build/tests --output-on-failure
 
       - name: Build cp0 package

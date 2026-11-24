@@ -2,7 +2,7 @@
 
 #include "models/playback_queue.hpp"
 
-#include <miniaudio.h>
+#include "audio/music_decoder.hpp"
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -92,7 +92,7 @@ public:
         markRevised();
 
         ma_decoder_config decoder_config =
-            ma_decoder_config_init(kPlaybackFormat, kPlaybackChannels, kPlaybackSampleRate);
+            musicDecoderConfig(kPlaybackFormat, kPlaybackChannels, kPlaybackSampleRate);
         const ma_result decoder_result =
             ma_decoder_init_file(next_track.path.string().c_str(), &decoder_config, &_decoder);
         if (decoder_result != MA_SUCCESS) {
