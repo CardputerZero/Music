@@ -337,8 +337,53 @@ if(BUILD_TESTING)
     add_dependencies(music_cover_image_loader_tests music_libjpeg_build)
     add_test(NAME music_cover_image_loader COMMAND music_cover_image_loader_tests)
 
+    add_executable(music_decoder_tests
+        tests/music_decoder_test.cpp
+        src/audio/alac_decoder.cpp
+        src/audio/music_decoder.cpp
+        src/audio/miniaudio_impl.c
+    )
+    target_include_directories(music_decoder_tests PRIVATE
+        "${MUSIC_SRC_DIR}"
+        "${MUSIC_MINIAUDIO_DIR}"
+    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(music_decoder_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    target_link_libraries(music_decoder_tests PRIVATE
+        Threads::Threads
+        ${MUSIC_SYSTEM_LIBS}
+    )
+    add_test(NAME music_decoder COMMAND music_decoder_tests "${MUSIC_ROOT}/tests/fixtures/alac")
+
+    add_executable(music_playback_model_tests
+        tests/playback_model_test.cpp
+        src/models/playback_model.cpp
+        src/audio/alac_decoder.cpp
+        src/audio/music_decoder.cpp
+        src/audio/miniaudio_impl.c
+    )
+    target_include_directories(music_playback_model_tests PRIVATE
+        "${MUSIC_SRC_DIR}"
+        "${MUSIC_MINIAUDIO_DIR}"
+    )
+    target_compile_definitions(music_playback_model_tests PRIVATE
+        MUSIC_USE_PULSEAUDIO=$<IF:$<BOOL:${MUSIC_USE_PULSEAUDIO}>,1,0>
+    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(music_playback_model_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    target_link_libraries(music_playback_model_tests PRIVATE
+        spdlog::spdlog
+        Threads::Threads
+        ${MUSIC_SYSTEM_LIBS}
+    )
+    add_test(NAME music_playback_model COMMAND music_playback_model_tests "${MUSIC_ROOT}/tests/fixtures/alac")
+
     add_executable(music_library_model_tests
         tests/music_library_model_test.cpp
+        src/audio/alac_decoder.cpp
+        src/audio/music_decoder.cpp
         src/audio/miniaudio_impl.c
         src/assets/runtime_assets.cpp
         src/core/music_guides.cpp

@@ -11,6 +11,8 @@ Local music player and indexed album browser for M5Stack CardputerZero.
 - Browse `All Music` and detected albums in an animated Cover Flow interface
 - Use embedded or external album artwork and derive each album's UI colors from its cover
 - Play album queues with sequential, shuffle, and repeat-one modes
+- Play MP3, FLAC and WAV, plus Apple Lossless (ALAC) in `.m4a`/`.m4b`/`.mp4` with a built-in decoder
+  (no extra libraries). AAC-encoded M4A files are indexed but not yet playable
 - Display embedded lyrics or matching `.lrc` files with synchronized scrolling
 - Render multilingual metadata with bundled Noto Sans SC and JP fonts
 - Show bundled example music, synchronized sample lyrics, and setup guides when the user library is empty

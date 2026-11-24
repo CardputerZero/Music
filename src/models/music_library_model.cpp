@@ -14,7 +14,7 @@
 #include <mp4file.h>
 #include <mp4item.h>
 #include <mp4tag.h>
-#include <miniaudio.h>
+#include "audio/music_decoder.hpp"
 #include <spdlog/spdlog.h>
 #include <tag.h>
 #include <tpropertymap.h>
@@ -754,7 +754,7 @@ std::optional<std::int64_t> miniaudioDuration(const fs::path& path)
 {
     ma_decoder decoder{};
     const ma_decoder_config config =
-        ma_decoder_config_init(ma_format_f32, kDecoderProbeChannels, kDecoderProbeSampleRate);
+        musicDecoderConfig(ma_format_f32, kDecoderProbeChannels, kDecoderProbeSampleRate);
     const ma_result init_result = ma_decoder_init_file(path.string().c_str(), &config, &decoder);
     if (init_result != MA_SUCCESS) {
         spdlog::warn("Music library: miniaudio could not open '{}': {} ({})", path.string(),
